@@ -2,12 +2,11 @@
 
 from __future__ import annotations
 
-from datetime import date
 from typing import Any
 
 from homeassistant.helpers.update_coordinator import DataUpdateCoordinator, UpdateFailed
+from homeassistant.util import dt as dt_util
 
-from .const import LOGGER
 from .api import (
     THIMensaApiClient,
     THIMensaApiCommunicationError,
@@ -18,7 +17,7 @@ from .api import (
 
 def _filter_today_meals(food_data: list[dict[str, Any]]) -> dict[str, Any]:
     """Return meals only for today's date."""
-    today_iso = date.today().isoformat()
+    today_iso = dt_util.now().date().isoformat()
     for entry in food_data:
         if entry.get("timestamp") == today_iso:
             return {"timestamp": today_iso, "meals": entry.get("meals", [])}
@@ -37,11 +36,10 @@ class THIMensaDataUpdateCoordinator(DataUpdateCoordinator):
         try:
             result = await client.async_fetch_meals([location])
             if result.get("errors"):
-                raise THIMensaApiResponseError(str(result["errors"]))
+                error_message = str(result["errors"])
+                raise UpdateFailed(error_message)
             return _filter_today_meals(result.get("foodData", []))
-        except THIMensaApiResponseError as exception:
-            raise UpdateFailed(exception) from exception
-        except THIMensaApiCommunicationError as exception:
+        except (THIMensaApiResponseError, THIMensaApiCommunicationError) as exception:
             raise UpdateFailed(exception) from exception
         except THIMensaApiError as exception:
             raise UpdateFailed(exception) from exception

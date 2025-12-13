@@ -5,25 +5,25 @@ from __future__ import annotations
 from typing import TYPE_CHECKING, Any
 
 from homeassistant.components.sensor import SensorEntity
-from homeassistant.core import HomeAssistant
 from homeassistant.helpers.device_registry import DeviceEntryType, DeviceInfo
-from homeassistant.helpers.entity_platform import AddEntitiesCallback
 from homeassistant.helpers.update_coordinator import CoordinatorEntity
 
 from .const import CONF_LOCATION, CONF_PRICE_GROUP, DOMAIN
 
 if TYPE_CHECKING:
-    from .data import THIMensaConfigEntry
+    from homeassistant.core import HomeAssistant
+    from homeassistant.helpers.entity_platform import AddEntitiesCallback
+
     from .coordinator import THIMensaDataUpdateCoordinator
+    from .data import THIMensaConfigEntry
 
 
 async def async_setup_entry(
-    hass: HomeAssistant,
+    _hass: HomeAssistant,
     entry: THIMensaConfigEntry,
     async_add_entities: AddEntitiesCallback,
 ) -> None:
     """Set up meal sensors based on the coordinator data."""
-
     coordinator: THIMensaDataUpdateCoordinator = entry.runtime_data.coordinator
     tracked: dict[str, MensaMealSensor] = {}
 
@@ -55,6 +55,7 @@ class MensaMealSensor(CoordinatorEntity, SensorEntity):
         entry: THIMensaConfigEntry,
         meal_id: str,
     ) -> None:
+        """Initialize the sensor with meal metadata."""
         super().__init__(coordinator)
         self._config_entry = entry
         self._meal_id = meal_id
@@ -81,10 +82,12 @@ class MensaMealSensor(CoordinatorEntity, SensorEntity):
 
     @property
     def available(self) -> bool:
+        """Return whether the meal still exists in the coordinator data."""
         return self._meal is not None
 
     @property
     def name(self) -> str | None:
+        """Return a localized meal name if present."""
         meal = self._meal
         if not meal:
             return "THI Mensa meal"
@@ -93,6 +96,7 @@ class MensaMealSensor(CoordinatorEntity, SensorEntity):
 
     @property
     def native_value(self) -> float | None:
+        """Return the selected price group value."""
         meal = self._meal
         if not meal:
             return None
@@ -101,10 +105,12 @@ class MensaMealSensor(CoordinatorEntity, SensorEntity):
 
     @property
     def native_unit_of_measurement(self) -> str:
+        """Return the unit of measurement for the price."""
         return "EUR"
 
     @property
     def extra_state_attributes(self) -> dict[str, Any]:
+        """Provide detailed metadata about the meal."""
         meal = self._meal
         if not meal:
             return {}

@@ -69,9 +69,11 @@ class THIMensaApiClient:
             raise THIMensaApiError(msg) from exception
 
         if "errors" in data:
-            raise THIMensaApiResponseError(str(data["errors"]))
+            error_message = str(data["errors"])
+            raise THIMensaApiResponseError(error_message)
 
         if not data.get("data") or not data["data"].get("food"):
-            raise THIMensaApiResponseError("Malformed response from Neuland API")
+            error_message = "Malformed response from Neuland API"
+            raise THIMensaApiResponseError(error_message)
 
         return data["data"]["food"]

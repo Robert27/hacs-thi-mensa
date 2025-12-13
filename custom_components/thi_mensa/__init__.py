@@ -27,7 +27,6 @@ async def async_setup_entry(
     entry: THIMensaConfigEntry,
 ) -> bool:
     """Set up THI Mensa integration."""
-
     coordinator = THIMensaDataUpdateCoordinator(
         hass=hass,
         logger=LOGGER,
