@@ -1,0 +1,37 @@
+{
+    "config": {
+        "step": {
+            "user": {
+                "title": "Connect THI Mensa",
+                "description": "Choose a location and price group to show today's meals.",
+                "data": {
+                    "location": "Cafeteria location",
+                    "price_group": "Price group"
+                }
+            }
+        },
+        "error": {
+            "connection": "Unable to reach the mensa service.",
+            "invalid_location": "The selected location returned no data."
+        },
+        "abort": {
+            "already_configured": "This location is already configured."
+        }
+    },
+    "options": {
+        "step": {
+            "init": {
+                "title": "Update THI Mensa settings",
+                "description": "Adjust the location or price group used for pricing.",
+                "data": {
+                    "location": "Cafeteria location",
+                    "price_group": "Price group"
+                }
+            }
+        },
+        "error": {
+            "connection": "Unable to reach the mensa service.",
+            "invalid_location": "The selected location returned no data."
+        }
+    }
+}
