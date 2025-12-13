@@ -1,0 +1,10 @@
+{
+  "domain": "thi_mensa",
+  "name": "THI Mensa",
+  "codeowners": ["@user"],
+  "config_flow": true,
+  "documentation": "https://github.com/user/hacs-thi-mensa",
+  "iot_class": "cloud_polling",
+  "issue_tracker": "https://github.com/user/hacs-thi-mensa/issues",
+  "version": "0.1.0"
+}
