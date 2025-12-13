@@ -20,6 +20,7 @@ from .const import (
     CONF_PRICE_GROUP,
     DEFAULT_LOCATIONS,
     DOMAIN,
+    LOGGER,
     PRICE_GROUPS,
 )
 
@@ -38,9 +39,20 @@ class THIMensaConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):
         if user_input is not None:
             try:
                 await self._validate_location(user_input[CONF_LOCATION])
-            except THIMensaApiCommunicationError:
+            except THIMensaApiCommunicationError as err:
+                LOGGER.warning(
+                    "Validation for location '%s' failed due to communication "
+                    "error: %s",
+                    user_input[CONF_LOCATION],
+                    err,
+                )
                 errors["base"] = "connection"
-            except THIMensaApiResponseError:
+            except THIMensaApiResponseError as err:
+                LOGGER.info(
+                    "Validation for location '%s' failed with response error: %s",
+                    user_input[CONF_LOCATION],
+                    err,
+                )
                 errors["base"] = "invalid_location"
             else:
                 await self.async_set_unique_id(user_input[CONF_LOCATION])
@@ -114,9 +126,21 @@ class THIMensaOptionsFlowHandler(config_entries.OptionsFlow):
         if user_input is not None:
             try:
                 await self._validate_location(user_input[CONF_LOCATION])
-            except THIMensaApiCommunicationError:
+            except THIMensaApiCommunicationError as err:
+                LOGGER.warning(
+                    "Options validation for location '%s' failed due to "
+                    "communication error: %s",
+                    user_input[CONF_LOCATION],
+                    err,
+                )
                 errors["base"] = "connection"
-            except THIMensaApiResponseError:
+            except THIMensaApiResponseError as err:
+                LOGGER.info(
+                    "Options validation for location '%s' failed with response "
+                    "error: %s",
+                    user_input[CONF_LOCATION],
+                    err,
+                )
                 errors["base"] = "invalid_location"
             else:
                 return self.async_create_entry(title="", data=user_input)
