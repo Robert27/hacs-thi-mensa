@@ -41,7 +41,8 @@ class THIMensaConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):
                 await self._validate_location(user_input[CONF_LOCATION])
             except THIMensaApiCommunicationError as err:
                 LOGGER.warning(
-                    "Validation for location '%s' failed due to communication error: %s",
+                    "Validation for location '%s' failed due to communication "
+                    "error: %s",
                     user_input[CONF_LOCATION],
                     err,
                 )
@@ -127,14 +128,16 @@ class THIMensaOptionsFlowHandler(config_entries.OptionsFlow):
                 await self._validate_location(user_input[CONF_LOCATION])
             except THIMensaApiCommunicationError as err:
                 LOGGER.warning(
-                    "Options validation for location '%s' failed due to communication error: %s",
+                    "Options validation for location '%s' failed due to "
+                    "communication error: %s",
                     user_input[CONF_LOCATION],
                     err,
                 )
                 errors["base"] = "connection"
             except THIMensaApiResponseError as err:
                 LOGGER.info(
-                    "Options validation for location '%s' failed with response error: %s",
+                    "Options validation for location '%s' failed with response "
+                    "error: %s",
                     user_input[CONF_LOCATION],
                     err,
                 )
