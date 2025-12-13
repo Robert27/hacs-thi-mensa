@@ -33,7 +33,7 @@ class THIMensaApiClient:
     async def async_fetch_meals(self, locations: list[str]) -> dict[str, Any]:
         """Fetch meals for the given locations."""
         query = """
-        query Meals($locations: [RestaurantLocation!]!) {
+        query Meals($locations: [LocationInput!]!) {
           food(locations: $locations) {
             foodData {
               timestamp
@@ -46,6 +46,26 @@ class THIMensaApiClient:
                 prices { student employee guest }
                 allergens
                 flags
+                variants {
+                  id
+                  mealId
+                  category
+                  restaurant
+                  name { de en }
+                  prices { student employee guest }
+                  allergens
+                  flags
+                  additional
+                  originalLanguage
+                  static
+                  parent {
+                    id
+                    category
+                    name { de en }
+                  }
+                }
+                originalLanguage
+                static
               }
             }
             errors { location message }
