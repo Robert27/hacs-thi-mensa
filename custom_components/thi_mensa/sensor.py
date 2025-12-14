@@ -63,7 +63,7 @@ async def async_setup_entry(
 class MensaMealSensor(CoordinatorEntity, SensorEntity):
     """Represents a single meal as a sensor entity."""
 
-    _attr_has_entity_name = True
+    _attr_has_entity_name = False
 
     def __init__(
         self,
