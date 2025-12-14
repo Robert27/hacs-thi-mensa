@@ -80,18 +80,15 @@ class MensaMealSensor(CoordinatorEntity, SensorEntity):
         self._attr_unique_id = f"{entry.entry_id}-{day}-meal-{slot_index + 1}"
         self._attr_name = f"{day}_{slot_index + 1}"
 
-        # Get location from config entry (check options first, then data)
         location = entry.options.get(
             CONF_LOCATION, entry.data.get(CONF_LOCATION, "Ingolstadt Mensa")
         )
         base_device_name = format_location_name(location)
 
         # Create separate devices for today and tomorrow
-        # Use location + day in identifier to ensure proper separation
         day_label = "Tomorrow" if day == "tomorrow" else "Today"
         device_name = f"{base_device_name} - {day_label}"
 
-        # Create unique device identifier that includes location and day
         device_identifier = f"{location}-{day}"
 
         self._attr_device_info = DeviceInfo(
@@ -131,9 +128,7 @@ class MensaMealSensor(CoordinatorEntity, SensorEntity):
         normalized_lower = normalized.lower()
         for prefix in prefixes:
             if normalized_lower.startswith(prefix):
-                # Remove prefix and any following separators (space, colon, dash, etc.)
                 remaining = normalized[len(prefix) :].lstrip(" :-")
-                # Only use stripped version if it's not empty
                 if remaining:
                     normalized = remaining
                 break
@@ -167,13 +162,11 @@ class MensaMealSensor(CoordinatorEntity, SensorEntity):
         """Return the actual meal name for friendly display."""
         meal = self._meal
         if not meal:
-            # No meal available, use fixed name (entity_id stays stable)
-            return self._attr_name
+            return f"Gericht {self._slot_index + 1}"
         name_data = meal.get("name") or {}
         name = name_data.get("en") or name_data.get("de")
         stripped_name = self._strip_restaurant_prefix(name)
-        # Return meal name if available, otherwise fall back to fixed name
-        return stripped_name if stripped_name else self._attr_name
+        return stripped_name if stripped_name else f"Gericht {self._slot_index + 1}"
 
     @property
     def icon(self) -> str:
@@ -191,7 +184,15 @@ class MensaMealSensor(CoordinatorEntity, SensorEntity):
         if not meal:
             return None
         prices = meal.get("prices") or {}
-        return prices.get(self._selected_price_group)
+        price = prices.get(self._selected_price_group)
+        if price is None:
+            return None
+        return round(float(price), 2)
+
+    @property
+    def suggested_display_precision(self) -> int:
+        """Return the suggested display precision (2 decimal places for prices)."""
+        return 2
 
     @property
     def native_unit_of_measurement(self) -> str:
