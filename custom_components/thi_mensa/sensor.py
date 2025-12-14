@@ -25,18 +25,21 @@ async def async_setup_entry(
 ) -> None:
     """Set up meal sensors based on the coordinator data."""
     coordinator: THIMensaDataUpdateCoordinator = entry.runtime_data.coordinator
-    tracked: dict[str, MensaMealSensor] = {}
+    tracked: dict[int, MensaMealSensor] = {}
 
     def _sync_entities_from_data() -> None:
         meals = coordinator.data.get("meals", []) if coordinator.data else []
+        required_slots = max(5, len(meals))
         new_entities: list[MensaMealSensor] = []
-        for meal in meals:
-            meal_identifier = meal.get("id") or meal.get("mealId")
-            if not meal_identifier or meal_identifier in tracked:
+
+        for slot_index in range(required_slots):
+            if slot_index in tracked:
                 continue
-            sensor = MensaMealSensor(coordinator, entry, meal_identifier)
-            tracked[meal_identifier] = sensor
+
+            sensor = MensaMealSensor(coordinator, entry, slot_index)
+            tracked[slot_index] = sensor
             new_entities.append(sensor)
+
         if new_entities:
             async_add_entities(new_entities)
 
@@ -53,18 +56,31 @@ class MensaMealSensor(CoordinatorEntity, SensorEntity):
         self,
         coordinator: THIMensaDataUpdateCoordinator,
         entry: THIMensaConfigEntry,
-        meal_id: str,
+        slot_index: int,
     ) -> None:
         """Initialize the sensor with meal metadata."""
         super().__init__(coordinator)
         self._config_entry = entry
-        self._meal_id = meal_id
-        self._attr_unique_id = f"{entry.entry_id}-{meal_id}"
+        self._slot_index = slot_index
+        self._attr_unique_id = f"{entry.entry_id}-meal-{slot_index + 1}"
         self._attr_device_info = DeviceInfo(
             identifiers={(DOMAIN, entry.entry_id)},
             name="THI Mensa",
             entry_type=DeviceEntryType.SERVICE,
         )
+
+    @staticmethod
+    def _strip_restaurant_prefix(name: str | None) -> str | None:
+        """Remove the leading restaurant label from a meal name."""
+        if not name:
+            return name
+
+        normalized = name.strip()
+        prefix = "thi mensa"
+        if normalized.lower().startswith(prefix):
+            normalized = normalized[len(prefix) :].lstrip(" :-") or normalized
+
+        return normalized
 
     @property
     def _selected_price_group(self) -> str:
@@ -75,9 +91,8 @@ class MensaMealSensor(CoordinatorEntity, SensorEntity):
     @property
     def _meal(self) -> dict[str, Any] | None:
         meals = self.coordinator.data.get("meals", []) if self.coordinator.data else []
-        for meal in meals:
-            if meal.get("id") == self._meal_id or meal.get("mealId") == self._meal_id:
-                return meal
+        if self._slot_index < len(meals):
+            return meals[self._slot_index]
         return None
 
     @property
@@ -90,9 +105,10 @@ class MensaMealSensor(CoordinatorEntity, SensorEntity):
         """Return a localized meal name if present."""
         meal = self._meal
         if not meal:
-            return "THI Mensa meal"
+            return f"Meal {self._slot_index + 1}"
         name_data = meal.get("name") or {}
-        return name_data.get("en") or name_data.get("de") or "THI Mensa meal"
+        name = name_data.get("en") or name_data.get("de")
+        return self._strip_restaurant_prefix(name) or "THI Mensa meal"
 
     @property
     def native_value(self) -> float | None:
