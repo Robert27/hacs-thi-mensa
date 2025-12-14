@@ -72,14 +72,13 @@ class MensaMealSensor(CoordinatorEntity, SensorEntity):
     @staticmethod
     def _strip_restaurant_prefix(name: str | None) -> str | None:
         """Remove the leading restaurant label from a meal name."""
-
         if not name:
             return name
 
         normalized = name.strip()
         prefix = "thi mensa"
         if normalized.lower().startswith(prefix):
-            normalized = normalized[len(prefix) :].lstrip(" :-–—") or normalized
+            normalized = normalized[len(prefix) :].lstrip(" :-") or normalized
 
         return normalized
 
