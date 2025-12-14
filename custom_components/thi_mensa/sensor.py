@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+import re
 from typing import TYPE_CHECKING, Any
 
 from homeassistant.components.sensor import SensorEntity
@@ -63,11 +64,45 @@ class MensaMealSensor(CoordinatorEntity, SensorEntity):
         self._config_entry = entry
         self._slot_index = slot_index
         self._attr_unique_id = f"{entry.entry_id}-meal-{slot_index + 1}"
+
+        # Get location from config entry (check options first, then data)
+        location = entry.options.get(
+            CONF_LOCATION, entry.data.get(CONF_LOCATION, "Ingolstadt Mensa")
+        )
+        device_name = self._format_location_name(location)
+
         self._attr_device_info = DeviceInfo(
             identifiers={(DOMAIN, entry.entry_id)},
-            name="Ingolstadt Mensa",
+            name=device_name,
             entry_type=DeviceEntryType.SERVICE,
         )
+
+    @staticmethod
+    def _format_location_name(location: str) -> str:
+        if not location:
+            return "Ingolstadt Mensa"
+
+        formatted = re.sub(r"(?<!^)(?<! )([A-Z])", r" \1", location)
+        return formatted.strip()
+
+    @staticmethod
+    def _get_category_icon(category: str | None) -> str:
+        """Return Home Assistant icon based on meal category."""
+        if not category:
+            return "mdi:food"
+
+        category_lower = category.lower()
+
+        # Map categories to icons
+        icon_map = {
+            "main": "mdi:silverware-fork-knife",
+            "salad": "mdi:bowl-mix",
+            "desert": "mdi:cake",
+            "dessert": "mdi:cake",  # Handle correct spelling too
+            "soup": "mdi:bowl",
+        }
+
+        return icon_map.get(category_lower, "mdi:food")
 
     @staticmethod
     def _strip_restaurant_prefix(name: str | None) -> str | None:
@@ -76,10 +111,16 @@ class MensaMealSensor(CoordinatorEntity, SensorEntity):
             return name
 
         normalized = name.strip()
+        # Try various prefix formats (case-insensitive)
         prefixes = ("thi mensa", "ingolstadt mensa")
+        normalized_lower = normalized.lower()
         for prefix in prefixes:
-            if normalized.lower().startswith(prefix):
-                normalized = normalized[len(prefix) :].lstrip(" :-") or normalized
+            if normalized_lower.startswith(prefix):
+                # Remove prefix and any following separators (space, colon, dash, etc.)
+                remaining = normalized[len(prefix) :].lstrip(" :-")
+                # Only use stripped version if it's not empty
+                if remaining:
+                    normalized = remaining
                 break
 
         return normalized
@@ -110,7 +151,17 @@ class MensaMealSensor(CoordinatorEntity, SensorEntity):
             return f"Meal {self._slot_index + 1}"
         name_data = meal.get("name") or {}
         name = name_data.get("en") or name_data.get("de")
-        return self._strip_restaurant_prefix(name) or "Ingolstadt Mensa meal"
+        stripped_name = self._strip_restaurant_prefix(name)
+        return stripped_name or f"Meal {self._slot_index + 1}"
+
+    @property
+    def icon(self) -> str:
+        """Return icon based on meal category."""
+        meal = self._meal
+        if not meal:
+            return "mdi:food"
+        category = meal.get("category")
+        return self._get_category_icon(category)
 
     @property
     def native_value(self) -> float | None:
