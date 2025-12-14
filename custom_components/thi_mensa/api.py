@@ -49,7 +49,6 @@ class THIMensaApiClient:
                 variants {
                   id
                   mealId
-                  category
                   restaurant
                   name { de en }
                   prices { student employee guest }
