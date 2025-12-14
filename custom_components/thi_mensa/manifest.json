@@ -1,6 +1,6 @@
 {
   "domain": "thi_mensa",
-  "name": "THI Mensa",
+  "name": "Ingolstadt Mensa",
   "codeowners": ["@user"],
   "config_flow": true,
   "documentation": "https://github.com/user/hacs-thi-mensa",

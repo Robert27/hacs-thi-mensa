@@ -1,4 +1,4 @@
-"""Constants for THI Mensa integration."""
+"""Constants for the Ingolstadt Mensa integration."""
 
 from logging import Logger, getLogger
 

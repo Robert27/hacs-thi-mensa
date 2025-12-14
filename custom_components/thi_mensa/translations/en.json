@@ -2,7 +2,7 @@
     "config": {
         "step": {
             "user": {
-                "title": "Connect THI Mensa",
+                "title": "Connect Ingolstadt Mensa",
                 "description": "Choose a location and price group to show today's meals.",
                 "data": {
                     "location": "Cafeteria location",
@@ -21,7 +21,7 @@
     "options": {
         "step": {
             "init": {
-                "title": "Update THI Mensa settings",
+                "title": "Update Ingolstadt Mensa settings",
                 "description": "Adjust the location or price group used for pricing.",
                 "data": {
                     "location": "Cafeteria location",

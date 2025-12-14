@@ -1,4 +1,4 @@
-"""Sensor platform for THI Mensa meals."""
+"""Sensor platform for Ingolstadt Mensa meals."""
 
 from __future__ import annotations
 
@@ -65,7 +65,7 @@ class MensaMealSensor(CoordinatorEntity, SensorEntity):
         self._attr_unique_id = f"{entry.entry_id}-meal-{slot_index + 1}"
         self._attr_device_info = DeviceInfo(
             identifiers={(DOMAIN, entry.entry_id)},
-            name="THI Mensa",
+            name="Ingolstadt Mensa",
             entry_type=DeviceEntryType.SERVICE,
         )
 
@@ -76,9 +76,11 @@ class MensaMealSensor(CoordinatorEntity, SensorEntity):
             return name
 
         normalized = name.strip()
-        prefix = "thi mensa"
-        if normalized.lower().startswith(prefix):
-            normalized = normalized[len(prefix) :].lstrip(" :-") or normalized
+        prefixes = ("thi mensa", "ingolstadt mensa")
+        for prefix in prefixes:
+            if normalized.lower().startswith(prefix):
+                normalized = normalized[len(prefix) :].lstrip(" :-") or normalized
+                break
 
         return normalized
 
@@ -108,7 +110,7 @@ class MensaMealSensor(CoordinatorEntity, SensorEntity):
             return f"Meal {self._slot_index + 1}"
         name_data = meal.get("name") or {}
         name = name_data.get("en") or name_data.get("de")
-        return self._strip_restaurant_prefix(name) or "THI Mensa meal"
+        return self._strip_restaurant_prefix(name) or "Ingolstadt Mensa meal"
 
     @property
     def native_value(self) -> float | None:
