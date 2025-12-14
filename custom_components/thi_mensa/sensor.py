@@ -206,22 +206,11 @@ class MensaMealSensor(CoordinatorEntity, SensorEntity):
         if not meal:
             return {}
         name_data = meal.get("name") or {}
-        name = name_data.get("en") or name_data.get("de")
-        stripped_name = self._strip_restaurant_prefix(name)
         return {
-            "name": stripped_name or f"Meal {self._slot_index + 1}",
             "name_de": name_data.get("de"),
             "name_en": name_data.get("en"),
             "category": meal.get("category"),
-            "restaurant": meal.get("restaurant"),
-            "prices": meal.get("prices"),
             "allergens": meal.get("allergens"),
             "flags": meal.get("flags"),
-            "meal_id": meal.get("mealId"),
             "date": self.coordinator.data.get(self._day, {}).get("timestamp"),
-            "day": self._day,
-            "location": self._config_entry.options.get(
-                CONF_LOCATION, self._config_entry.data.get(CONF_LOCATION)
-            ),
-            "price_group": self._selected_price_group,
         }
