@@ -1,16 +1,23 @@
-# THI Mensa
+# Ingolstadt Mensa
 
-Home Assistant custom integration that exposes each of today's meals at the THI mensa as individual sensor entities. Select your campus location and preferred price group during onboarding, and the integration will always show the current day's dishes with pricing.
+Ingolstadt Mensa surfaces the daily meal plan for the Technische Hochschule Ingolstadt canteens right inside Home Assistant. It uses the open-source GraphQL API provided by Neuland Ingolstadt, letting you pick from multiple cafeterias and price groups while keeping every dish available as its own sensor entity.
+
+## What you get
+
+- One sensor per meal for the current day, including price and rich attributes (name, category, allergens, flags, and all price tiers).
+- Coverage for all canteens exposed by the Neuland API: Ingolstadt Mensa, Neuburg Mensa, Reimanns, and Canisius.
+- Quick onboarding through a guided config flow and adjustable options later on.
 
 ## Installation
 
-1. Add this repository to HACS as a custom repository.
-2. Install the **THI Mensa** integration.
-3. Complete the configuration flow by choosing your location and price group.
+1. Add this repository as a **custom repository** in HACS (category: Integration).
+2. Install the **Ingolstadt Mensa** integration from HACS.
+3. Restart Home Assistant if prompted.
+4. Complete the configuration flow by selecting your cafeteria location and price group.
 
 ## Configuration
 
-- **Location**: Mensa location provided by the Neuland API (IngolstadtMensa, NeuburgMensa, Reimanns, or Canisius).
-- **Price group**: Whether prices should reflect students, employees, or guests.
+- **Location**: Choose the mensa location supplied by the Neuland API (IngolstadtMensa, NeuburgMensa, Reimanns, or Canisius).
+- **Price group**: Decide whether prices should reflect students, employees, or guests.
 
-The integration creates one sensor per meal found for the current day. Each sensor's state is the meal price for the selected group, with attributes for names, category, allergens, flags, and all price tiers.
+You can revisit the integration options at any time to switch locations or change the price group. Sensors automatically refresh throughout the day to stay in sync with the published menu.

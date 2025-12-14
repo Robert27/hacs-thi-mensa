@@ -1,4 +1,4 @@
-"""Custom types for THI Mensa."""
+"""Custom types for the Ingolstadt Mensa integration."""
 
 from __future__ import annotations
 

@@ -1,4 +1,4 @@
-"""Config flow for THI Mensa."""
+"""Config flow for Ingolstadt Mensa."""
 
 from __future__ import annotations
 
@@ -26,7 +26,7 @@ from .const import (
 
 
 class THIMensaConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):
-    """Handle a config flow for THI Mensa."""
+    """Handle a config flow for Ingolstadt Mensa."""
 
     VERSION = 1
 
@@ -110,7 +110,7 @@ class THIMensaConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):
 
 
 class THIMensaOptionsFlowHandler(config_entries.OptionsFlow):
-    """Handle options for THI Mensa."""
+    """Handle options for Ingolstadt Mensa."""
 
     def __init__(self, entry: config_entries.ConfigEntry) -> None:
         """Initialize options handler with the config entry."""

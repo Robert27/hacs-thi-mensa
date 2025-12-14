@@ -1,4 +1,4 @@
-"""API client for THI Mensa GraphQL endpoint."""
+"""API client for the Ingolstadt Mensa GraphQL endpoint."""
 
 from __future__ import annotations
 

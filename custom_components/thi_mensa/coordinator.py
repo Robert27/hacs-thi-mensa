@@ -1,4 +1,4 @@
-"""DataUpdateCoordinator for THI Mensa."""
+"""DataUpdateCoordinator for Ingolstadt Mensa."""
 
 from __future__ import annotations
 

@@ -1,4 +1,4 @@
-"""THI Mensa integration."""
+"""Ingolstadt Mensa integration."""
 
 from __future__ import annotations
 
@@ -26,7 +26,7 @@ async def async_setup_entry(
     hass: HomeAssistant,
     entry: THIMensaConfigEntry,
 ) -> bool:
-    """Set up THI Mensa integration."""
+    """Set up the Ingolstadt Mensa integration."""
     coordinator = THIMensaDataUpdateCoordinator(
         hass=hass,
         logger=LOGGER,
