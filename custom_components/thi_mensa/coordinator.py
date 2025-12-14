@@ -2,7 +2,7 @@
 
 from __future__ import annotations
 
-from datetime import date, datetime
+from datetime import date, datetime, timedelta
 from typing import Any
 
 from homeassistant.helpers.update_coordinator import DataUpdateCoordinator, UpdateFailed
@@ -31,10 +31,15 @@ def _parse_entry_date(entry_timestamp: str | None) -> date | None:
         return None
 
 
-def _filter_today_meals(food_data: list[dict[str, Any]]) -> dict[str, Any]:
-    """Return meals for today or the next available date."""
+def _filter_meals_by_date(food_data: list[dict[str, Any]]) -> dict[str, Any]:
+    """Return meals for today and tomorrow."""
     today = dt_util.now().date()
-    next_entry: dict[str, Any] | None = None
+    tomorrow = today + timedelta(days=1)
+
+    today_meals: list[dict[str, Any]] = []
+    tomorrow_meals: list[dict[str, Any]] = []
+    today_timestamp = today.isoformat()
+    tomorrow_timestamp = tomorrow.isoformat()
 
     for entry in food_data:
         entry_date = _parse_entry_date(entry.get("timestamp"))
@@ -42,26 +47,22 @@ def _filter_today_meals(food_data: list[dict[str, Any]]) -> dict[str, Any]:
             continue
 
         if entry_date == today:
-            return {
-                "timestamp": entry_date.isoformat(),
-                "meals": entry.get("meals", []),
-            }
+            today_meals = entry.get("meals", [])
+            today_timestamp = entry_date.isoformat()
+        elif entry_date == tomorrow:
+            tomorrow_meals = entry.get("meals", [])
+            tomorrow_timestamp = entry_date.isoformat()
 
-        if entry_date > today and (
-            next_entry is None
-            or _parse_entry_date(next_entry.get("timestamp")) is None
-            or entry_date < _parse_entry_date(next_entry.get("timestamp"))
-        ):
-            next_entry = entry
-
-    if next_entry:
-        next_date = _parse_entry_date(next_entry.get("timestamp")) or today
-        return {
-            "timestamp": next_date.isoformat(),
-            "meals": next_entry.get("meals", []),
-        }
-
-    return {"timestamp": today.isoformat(), "meals": []}
+    return {
+        "today": {
+            "timestamp": today_timestamp,
+            "meals": today_meals,
+        },
+        "tomorrow": {
+            "timestamp": tomorrow_timestamp,
+            "meals": tomorrow_meals,
+        },
+    }
 
 
 class THIMensaDataUpdateCoordinator(DataUpdateCoordinator):
@@ -78,7 +79,7 @@ class THIMensaDataUpdateCoordinator(DataUpdateCoordinator):
             if result.get("errors"):
                 error_message = str(result["errors"])
                 raise UpdateFailed(error_message)
-            return _filter_today_meals(result.get("foodData", []))
+            return _filter_meals_by_date(result.get("foodData", []))
         except (THIMensaApiResponseError, THIMensaApiCommunicationError) as exception:
             raise UpdateFailed(exception) from exception
         except THIMensaApiError as exception:

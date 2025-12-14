@@ -1,5 +1,6 @@
 """Constants for the Ingolstadt Mensa integration."""
 
+import re
 from logging import Logger, getLogger
 
 DOMAIN = "thi_mensa"
@@ -16,3 +17,27 @@ PRICE_GROUPS = ["student", "employee", "guest"]
 
 CONF_PRICE_GROUP = "price_group"
 CONF_LOCATION = "location"
+
+
+def format_location_name(location: str) -> str:
+    """
+    Format location name for display.
+
+    Example: 'IngolstadtMensa' -> 'Ingolstadt Mensa'
+    """
+    if not location:
+        return "Ingolstadt Mensa"
+
+    formatted = re.sub(r"(?<!^)(?<! )([A-Z])", r" \1", location)
+    return formatted.strip()
+
+
+def format_price_group_name(price_group: str) -> str:
+    """
+    Format price group name for display.
+
+    Example: 'student' -> 'Student'
+    """
+    if not price_group:
+        return price_group
+    return price_group.capitalize()

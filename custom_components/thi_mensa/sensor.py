@@ -2,14 +2,13 @@
 
 from __future__ import annotations
 
-import re
 from typing import TYPE_CHECKING, Any
 
 from homeassistant.components.sensor import SensorEntity
 from homeassistant.helpers.device_registry import DeviceEntryType, DeviceInfo
 from homeassistant.helpers.update_coordinator import CoordinatorEntity
 
-from .const import CONF_LOCATION, CONF_PRICE_GROUP, DOMAIN
+from .const import CONF_LOCATION, CONF_PRICE_GROUP, DOMAIN, format_location_name
 
 if TYPE_CHECKING:
     from homeassistant.core import HomeAssistant
@@ -26,19 +25,32 @@ async def async_setup_entry(
 ) -> None:
     """Set up meal sensors based on the coordinator data."""
     coordinator: THIMensaDataUpdateCoordinator = entry.runtime_data.coordinator
-    tracked: dict[int, MensaMealSensor] = {}
+    tracked: dict[tuple[str, int], MensaMealSensor] = {}
 
     def _sync_entities_from_data() -> None:
-        meals = coordinator.data.get("meals", []) if coordinator.data else []
-        required_slots = max(5, len(meals))
+        if not coordinator.data:
+            return
+
         new_entities: list[MensaMealSensor] = []
 
-        for slot_index in range(required_slots):
-            if slot_index in tracked:
+        # Always create exactly 5 entities for today's meals (fixed slots)
+        for slot_index in range(5):
+            key = ("today", slot_index)
+            if key in tracked:
                 continue
 
-            sensor = MensaMealSensor(coordinator, entry, slot_index)
-            tracked[slot_index] = sensor
+            sensor = MensaMealSensor(coordinator, entry, slot_index, "today")
+            tracked[key] = sensor
+            new_entities.append(sensor)
+
+        # Always create exactly 5 entities for tomorrow's meals (fixed slots)
+        for slot_index in range(5):
+            key = ("tomorrow", slot_index)
+            if key in tracked:
+                continue
+
+            sensor = MensaMealSensor(coordinator, entry, slot_index, "tomorrow")
+            tracked[key] = sensor
             new_entities.append(sensor)
 
         if new_entities:
@@ -58,32 +70,35 @@ class MensaMealSensor(CoordinatorEntity, SensorEntity):
         coordinator: THIMensaDataUpdateCoordinator,
         entry: THIMensaConfigEntry,
         slot_index: int,
+        day: str = "today",
     ) -> None:
         """Initialize the sensor with meal metadata."""
         super().__init__(coordinator)
         self._config_entry = entry
         self._slot_index = slot_index
-        self._attr_unique_id = f"{entry.entry_id}-meal-{slot_index + 1}"
+        self._day = day
+        self._attr_unique_id = f"{entry.entry_id}-{day}-meal-{slot_index + 1}"
+        self._attr_name = f"{day}_{slot_index + 1}"
 
         # Get location from config entry (check options first, then data)
         location = entry.options.get(
             CONF_LOCATION, entry.data.get(CONF_LOCATION, "Ingolstadt Mensa")
         )
-        device_name = self._format_location_name(location)
+        base_device_name = format_location_name(location)
+
+        # Create separate devices for today and tomorrow
+        # Use location + day in identifier to ensure proper separation
+        day_label = "Tomorrow" if day == "tomorrow" else "Today"
+        device_name = f"{base_device_name} - {day_label}"
+
+        # Create unique device identifier that includes location and day
+        device_identifier = f"{location}-{day}"
 
         self._attr_device_info = DeviceInfo(
-            identifiers={(DOMAIN, entry.entry_id)},
+            identifiers={(DOMAIN, device_identifier)},
             name=device_name,
             entry_type=DeviceEntryType.SERVICE,
         )
-
-    @staticmethod
-    def _format_location_name(location: str) -> str:
-        if not location:
-            return "Ingolstadt Mensa"
-
-        formatted = re.sub(r"(?<!^)(?<! )([A-Z])", r" \1", location)
-        return formatted.strip()
 
     @staticmethod
     def _get_category_icon(category: str | None) -> str:
@@ -133,7 +148,11 @@ class MensaMealSensor(CoordinatorEntity, SensorEntity):
 
     @property
     def _meal(self) -> dict[str, Any] | None:
-        meals = self.coordinator.data.get("meals", []) if self.coordinator.data else []
+        if not self.coordinator.data:
+            return None
+
+        day_data = self.coordinator.data.get(self._day, {})
+        meals = day_data.get("meals", [])
         if self._slot_index < len(meals):
             return meals[self._slot_index]
         return None
@@ -145,14 +164,16 @@ class MensaMealSensor(CoordinatorEntity, SensorEntity):
 
     @property
     def name(self) -> str | None:
-        """Return a localized meal name if present."""
+        """Return the actual meal name for friendly display."""
         meal = self._meal
         if not meal:
-            return f"Meal {self._slot_index + 1}"
+            # No meal available, use fixed name (entity_id stays stable)
+            return self._attr_name
         name_data = meal.get("name") or {}
         name = name_data.get("en") or name_data.get("de")
         stripped_name = self._strip_restaurant_prefix(name)
-        return stripped_name or f"Meal {self._slot_index + 1}"
+        # Return meal name if available, otherwise fall back to fixed name
+        return stripped_name if stripped_name else self._attr_name
 
     @property
     def icon(self) -> str:
@@ -184,7 +205,10 @@ class MensaMealSensor(CoordinatorEntity, SensorEntity):
         if not meal:
             return {}
         name_data = meal.get("name") or {}
+        name = name_data.get("en") or name_data.get("de")
+        stripped_name = self._strip_restaurant_prefix(name)
         return {
+            "name": stripped_name or f"Meal {self._slot_index + 1}",
             "name_de": name_data.get("de"),
             "name_en": name_data.get("en"),
             "category": meal.get("category"),
@@ -193,7 +217,8 @@ class MensaMealSensor(CoordinatorEntity, SensorEntity):
             "allergens": meal.get("allergens"),
             "flags": meal.get("flags"),
             "meal_id": meal.get("mealId"),
-            "date": self.coordinator.data.get("timestamp"),
+            "date": self.coordinator.data.get(self._day, {}).get("timestamp"),
+            "day": self._day,
             "location": self._config_entry.options.get(
                 CONF_LOCATION, self._config_entry.data.get(CONF_LOCATION)
             ),

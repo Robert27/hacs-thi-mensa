@@ -22,6 +22,8 @@ from .const import (
     DOMAIN,
     LOGGER,
     PRICE_GROUPS,
+    format_location_name,
+    format_price_group_name,
 )
 
 
@@ -37,29 +39,41 @@ class THIMensaConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):
         errors: dict[str, str] = {}
 
         if user_input is not None:
+            location = user_input[CONF_LOCATION]
             try:
-                await self._validate_location(user_input[CONF_LOCATION])
+                await self._validate_location(location)
             except THIMensaApiCommunicationError as err:
                 LOGGER.warning(
                     "Validation for location '%s' failed due to communication "
                     "error: %s",
-                    user_input[CONF_LOCATION],
+                    location,
                     err,
                 )
                 errors["base"] = "connection"
             except THIMensaApiResponseError as err:
                 LOGGER.info(
                     "Validation for location '%s' failed with response error: %s",
-                    user_input[CONF_LOCATION],
+                    location,
                     err,
                 )
                 errors["base"] = "invalid_location"
             else:
-                await self.async_set_unique_id(user_input[CONF_LOCATION])
+                await self.async_set_unique_id(location)
                 self._abort_if_unique_id_configured()
-                return self.async_create_entry(
-                    title=user_input[CONF_LOCATION], data=user_input
-                )
+                # Format the title with readable location name
+                formatted_title = format_location_name(location)
+                return self.async_create_entry(title=formatted_title, data=user_input)
+
+        # Create location options list with label/value dicts
+        location_options = [
+            {"label": format_location_name(loc), "value": loc}
+            for loc in DEFAULT_LOCATIONS
+        ]
+
+        # Create price group options list with label/value dicts
+        price_group_options = [
+            {"label": format_price_group_name(pg), "value": pg} for pg in PRICE_GROUPS
+        ]
 
         return self.async_show_form(
             step_id="user",
@@ -72,7 +86,7 @@ class THIMensaConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):
                         ),
                     ): selector.SelectSelector(
                         selector.SelectSelectorConfig(
-                            options=DEFAULT_LOCATIONS,
+                            options=location_options,
                             mode=selector.SelectSelectorMode.DROPDOWN,
                         ),
                     ),
@@ -83,7 +97,7 @@ class THIMensaConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):
                         ),
                     ): selector.SelectSelector(
                         selector.SelectSelectorConfig(
-                            options=PRICE_GROUPS,
+                            options=price_group_options,
                             mode=selector.SelectSelectorMode.DROPDOWN,
                         ),
                     ),
@@ -145,6 +159,17 @@ class THIMensaOptionsFlowHandler(config_entries.OptionsFlow):
             else:
                 return self.async_create_entry(title="", data=user_input)
 
+        # Create location options list with label/value dicts
+        location_options = [
+            {"label": format_location_name(loc), "value": loc}
+            for loc in DEFAULT_LOCATIONS
+        ]
+
+        # Create price group options list with label/value dicts
+        price_group_options = [
+            {"label": format_price_group_name(pg), "value": pg} for pg in PRICE_GROUPS
+        ]
+
         return self.async_show_form(
             step_id="init",
             data_schema=vol.Schema(
@@ -154,7 +179,7 @@ class THIMensaOptionsFlowHandler(config_entries.OptionsFlow):
                         default=current.get(CONF_LOCATION, DEFAULT_LOCATIONS[0]),
                     ): selector.SelectSelector(
                         selector.SelectSelectorConfig(
-                            options=DEFAULT_LOCATIONS,
+                            options=location_options,
                             mode=selector.SelectSelectorMode.DROPDOWN,
                         ),
                     ),
@@ -163,7 +188,7 @@ class THIMensaOptionsFlowHandler(config_entries.OptionsFlow):
                         default=current.get(CONF_PRICE_GROUP, PRICE_GROUPS[0]),
                     ): selector.SelectSelector(
                         selector.SelectSelectorConfig(
-                            options=PRICE_GROUPS,
+                            options=price_group_options,
                             mode=selector.SelectSelectorMode.DROPDOWN,
                         ),
                     ),
