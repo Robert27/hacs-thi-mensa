@@ -1,5 +1,11 @@
 # Ingolstadt Mensa
 
+[![CI](https://github.com/Robert27/hacs-thi-mensa/actions/workflows/lint.yml/badge.svg)](https://github.com/Robert27/hacs-thi-mensa/actions/workflows/lint.yml)
+[![License](https://img.shields.io/github/license/Robert27/hacs-thi-mensa)](https://github.com/Robert27/hacs-thi-mensa/blob/main/LICENSE)
+[![Home Assistant](https://img.shields.io/badge/home%20assistant-2025.2.4+-blue.svg)](https://www.home-assistant.io)
+[![Python](https://img.shields.io/badge/python-3.13-blue.svg)](https://www.python.org)
+[![HACS](https://img.shields.io/badge/HACS-Custom-orange.svg)](https://hacs.xyz)
+
 Ingolstadt Mensa surfaces the meal plan for the Technische Hochschule Ingolstadt canteens right inside Home Assistant. It uses the open-source GraphQL API provided by Neuland Ingolstadt, letting you pick from multiple cafeterias and price groups while keeping every dish available as its own sensor entity.
 
 ## What you get
