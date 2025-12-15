@@ -90,9 +90,7 @@ class MensaMealSensor(CoordinatorEntity, SensorEntity):
         self._location_slug = slugify_location_name(location)
         base_device_name = format_location_name(location)
         # Force a static entity_id that only depends on location, day and slot
-        self.entity_id = (
-            f"sensor.{self._location_slug}_{day}_{slot_index + 1}"
-        )
+        self.entity_id = f"sensor.{self._location_slug}_{day}_{slot_index + 1}"
 
         # Create separate devices for today and tomorrow
         day_label = "Tomorrow" if day == "tomorrow" else "Today"
@@ -102,9 +100,7 @@ class MensaMealSensor(CoordinatorEntity, SensorEntity):
 
         self._fallback_name = f"{base_device_name} {day_label} #{slot_index + 1}"
         self._attr_unique_id = f"{entry.entry_id}-{day}-meal-{slot_index + 1}"
-        self._attr_suggested_object_id = (
-            f"{self._location_slug}_{day}_{slot_index + 1}"
-        )
+        self._attr_suggested_object_id = f"{self._location_slug}_{day}_{slot_index + 1}"
         self._attr_device_info = DeviceInfo(
             identifiers={(DOMAIN, device_identifier)},
             name=device_name,
