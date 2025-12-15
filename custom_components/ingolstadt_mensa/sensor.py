@@ -78,7 +78,7 @@ class MensaMealSensor(CoordinatorEntity, SensorEntity):
         self._slot_index = slot_index
         self._day = day
         self._attr_unique_id = f"{entry.entry_id}-{day}-meal-{slot_index + 1}"
-        self._attr_name = f"{day}_{slot_index + 1}"
+        self._attr_name = str(slot_index + 1)
 
         location = entry.options.get(
             CONF_LOCATION, entry.data.get(CONF_LOCATION, "Ingolstadt Mensa")
