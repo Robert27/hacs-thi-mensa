@@ -1,10 +1,10 @@
 {
-  "domain": "thi_mensa",
+  "domain": "ingolstadt_mensa",
   "name": "Ingolstadt Mensa",
   "codeowners": ["@Robert27"],
   "config_flow": true,
   "documentation": "https://github.com/Robert27/hacs-thi-mensa",
   "iot_class": "cloud_polling",
   "issue_tracker": "https://github.com/Robert27/hacs-thi-mensa/issues",
-  "version": "0.2.0"
+  "version": "0.2.2"
 }
