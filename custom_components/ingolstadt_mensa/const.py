@@ -41,3 +41,20 @@ def format_price_group_name(price_group: str) -> str:
     if not price_group:
         return price_group
     return price_group.capitalize()
+
+
+def slugify_location_name(location: str) -> str:
+    """
+    Convert location name to a slug for use in entity IDs.
+
+    Example: 'IngolstadtMensa' -> 'ingolstadt_mensa'
+             'Canisius' -> 'canisius'
+    """
+    if not location:
+        return "ingolstadt_mensa"
+
+    # Convert camelCase to snake_case
+    slug = re.sub(r"(?<!^)(?<! )([A-Z])", r"_\1", location)
+    # Convert to lowercase and replace spaces with underscores
+    slug = slug.lower().replace(" ", "_")
+    return slug

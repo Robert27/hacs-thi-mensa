@@ -8,7 +8,13 @@ from homeassistant.components.sensor import SensorEntity, SensorStateClass
 from homeassistant.helpers.device_registry import DeviceEntryType, DeviceInfo
 from homeassistant.helpers.update_coordinator import CoordinatorEntity
 
-from .const import CONF_LOCATION, CONF_PRICE_GROUP, DOMAIN, format_location_name
+from .const import (
+    CONF_LOCATION,
+    CONF_PRICE_GROUP,
+    DOMAIN,
+    format_location_name,
+    slugify_location_name,
+)
 
 if TYPE_CHECKING:
     from homeassistant.core import HomeAssistant
@@ -77,13 +83,16 @@ class MensaMealSensor(CoordinatorEntity, SensorEntity):
         self._config_entry = entry
         self._slot_index = slot_index
         self._day = day
-        self._attr_unique_id = f"{entry.entry_id}-{day}-meal-{slot_index + 1}"
-        self._attr_name = str(slot_index + 1)
 
         location = entry.options.get(
-            CONF_LOCATION, entry.data.get(CONF_LOCATION, "Ingolstadt Mensa")
+            CONF_LOCATION, entry.data.get(CONF_LOCATION, "IngolstadtMensa")
         )
+        self._location_slug = slugify_location_name(location)
         base_device_name = format_location_name(location)
+        # Force a static entity_id that only depends on location, day and slot
+        self.entity_id = (
+            f"sensor.{self._location_slug}_{day}_{slot_index + 1}"
+        )
 
         # Create separate devices for today and tomorrow
         day_label = "Tomorrow" if day == "tomorrow" else "Today"
@@ -91,6 +100,11 @@ class MensaMealSensor(CoordinatorEntity, SensorEntity):
 
         device_identifier = f"{location}-{day}"
 
+        self._fallback_name = f"{base_device_name} {day_label} #{slot_index + 1}"
+        self._attr_unique_id = f"{entry.entry_id}-{day}-meal-{slot_index + 1}"
+        self._attr_suggested_object_id = (
+            f"{self._location_slug}_{day}_{slot_index + 1}"
+        )
         self._attr_device_info = DeviceInfo(
             identifiers={(DOMAIN, device_identifier)},
             name=device_name,
@@ -179,23 +193,18 @@ class MensaMealSensor(CoordinatorEntity, SensorEntity):
 
     @property
     def name(self) -> str | None:
-        """Return the actual meal name for friendly display."""
+        """
+        Return the meal name as the friendly name.
+
+        The entity ID stays static through suggested_object_id while the
+        friendly name reflects the current meal title.
+        """
         meal = self._meal
-        if not meal:
-            # Use language-appropriate fallback text
-            preferred_lang = self._get_preferred_language()
-            fallback_text = "Gericht" if preferred_lang == "de" else "Meal"
-            return f"{fallback_text} {self._slot_index + 1}"
-
-        name_data = meal.get("name") or {}
-        name = self._get_meal_name(name_data)
-        if name:
-            return name
-
-        # Final fallback with language-appropriate text
-        preferred_lang = self._get_preferred_language()
-        fallback_text = "Gericht" if preferred_lang == "de" else "Meal"
-        return f"{fallback_text} {self._slot_index + 1}"
+        if meal:
+            meal_name = self._get_meal_name(meal.get("name") or {})
+            if meal_name:
+                return meal_name
+        return self._fallback_name
 
     @property
     def icon(self) -> str:
@@ -242,6 +251,9 @@ class MensaMealSensor(CoordinatorEntity, SensorEntity):
         price_employee = prices.get("employee")
         price_guest = prices.get("guest")
 
+        # Get the currently selected price group's price
+        selected_price = prices.get(self._selected_price_group)
+
         attributes = {
             "name_de": name_data.get("de"),
             "name_en": name_data.get("en"),
@@ -250,6 +262,9 @@ class MensaMealSensor(CoordinatorEntity, SensorEntity):
             "allergens": meal.get("allergens"),
             "flags": meal.get("flags"),
             "date": self.coordinator.data.get(self._day, {}).get("timestamp"),
+            "price": (
+                round(float(selected_price), 2) if selected_price is not None else None
+            ),
             "price_student": (
                 round(float(price_student), 2) if price_student is not None else None
             ),

@@ -1,6 +1,7 @@
 """Tests for sensor entities."""
 
 from __future__ import annotations
+from types import SimpleNamespace
 from unittest.mock import MagicMock
 
 import pytest
@@ -66,6 +67,8 @@ def mock_coordinator():
             ],
         },
     }
+    coordinator.hass = SimpleNamespace()
+    coordinator.hass.config = SimpleNamespace(language="en")
     return coordinator
 
 
@@ -80,25 +83,32 @@ def mock_entry():
 
 
 def test_sensor_name_german(mock_coordinator, mock_entry):
-    """Test sensor name in German."""
+    """Test sensor friendly name uses German meal title."""
     mock_coordinator.hass.config.language = "de"
+    mock_coordinator.data["today"]["meals"][0]["name"] = {
+        "de": "Deutscher Titel",
+        "en": "English Title",
+    }
     sensor = MensaMealSensor(mock_coordinator, mock_entry, 0, "today")
 
-    assert sensor.name == "Spaghetti Bolognese"
+    assert sensor.name == "Deutscher Titel"
 
 
 def test_sensor_name_english(mock_coordinator, mock_entry):
-    """Test sensor name in English."""
+    """Test sensor friendly name uses English meal title."""
     mock_coordinator.hass.config.language = "en"
+    mock_coordinator.data["today"]["meals"][0]["name"] = {
+        "de": "Deutscher Titel",
+        "en": "English Title",
+    }
     sensor = MensaMealSensor(mock_coordinator, mock_entry, 0, "today")
 
-    assert sensor.name == "Spaghetti Bolognese"
+    assert sensor.name == "English Title"
 
 
 def test_sensor_name_language_fallback(mock_coordinator, mock_entry):
-    """Test sensor name falls back to English when German not available."""
+    """Test sensor friendly name falls back to available language."""
     mock_coordinator.hass.config.language = "de"
-    # Modify meal to only have English name
     mock_coordinator.data["today"]["meals"][0]["name"] = {"en": "English Only Meal"}
     sensor = MensaMealSensor(mock_coordinator, mock_entry, 0, "today")
 
@@ -106,21 +116,13 @@ def test_sensor_name_language_fallback(mock_coordinator, mock_entry):
 
 
 def test_sensor_name_fallback(mock_coordinator, mock_entry):
-    """Test sensor name fallback when meal not available."""
+    """Test sensor friendly name fallback when meal not available."""
     mock_coordinator.hass.config.language = "de"
     sensor = MensaMealSensor(
         mock_coordinator, mock_entry, 5, "today"
     )  # Index out of range
 
-    assert sensor.name == "Gericht 6"
-
-
-def test_sensor_name_fallback_english(mock_coordinator, mock_entry):
-    """Test sensor name fallback in English."""
-    mock_coordinator.hass.config.language = "en"
-    sensor = MensaMealSensor(mock_coordinator, mock_entry, 5, "today")
-
-    assert sensor.name == "Meal 6"
+    assert sensor.name == "Ingolstadt Mensa Today #6"
 
 
 def test_sensor_name_empty_coordinator_data(mock_coordinator, mock_entry):
@@ -129,7 +131,7 @@ def test_sensor_name_empty_coordinator_data(mock_coordinator, mock_entry):
     mock_coordinator.data = None
     sensor = MensaMealSensor(mock_coordinator, mock_entry, 0, "today")
 
-    assert sensor.name == "Gericht 1"
+    assert sensor.name == "Ingolstadt Mensa Today #1"
 
 
 def test_sensor_available(mock_coordinator, mock_entry):
@@ -251,6 +253,7 @@ def test_sensor_extra_state_attributes(mock_coordinator, mock_entry):
     assert "name_en" in attributes
     assert "category" in attributes
     assert "restaurant" in attributes
+    assert "price" in attributes
     assert "price_student" in attributes
     assert "price_employee" in attributes
     assert "price_guest" in attributes
@@ -264,6 +267,7 @@ def test_sensor_extra_state_attributes(mock_coordinator, mock_entry):
     assert attributes["allergens"] == ["gluten", "milk"]
     assert attributes["flags"] == ["vegetarian"]
     assert attributes["date"] == "2025-01-15"
+    assert attributes["price"] == 3.5  # Selected price group is "student"
     assert attributes["price_student"] == 3.5
     assert attributes["price_employee"] == 4.5
     assert attributes["price_guest"] == 5.5
@@ -346,6 +350,29 @@ def test_sensor_unique_id(mock_coordinator, mock_entry):
 
     sensor2 = MensaMealSensor(mock_coordinator, mock_entry, 2, "tomorrow")
     assert sensor2._attr_unique_id == "test-entry-tomorrow-meal-3"
+
+
+def test_sensor_suggested_object_id(mock_coordinator, mock_entry):
+    """Test sensor suggested object id stays static."""
+    sensor = MensaMealSensor(mock_coordinator, mock_entry, 0, "today")
+    assert sensor._attr_suggested_object_id == "ingolstadt_mensa_today_1"
+
+    sensor_tomorrow = MensaMealSensor(mock_coordinator, mock_entry, 1, "tomorrow")
+    assert sensor_tomorrow._attr_suggested_object_id == "ingolstadt_mensa_tomorrow_2"
+
+
+def test_sensor_entity_id_static(mock_coordinator, mock_entry):
+    """Entity ID must stay static regardless of meal name."""
+    # Set an unusual meal name to ensure it doesn't influence entity_id
+    mock_coordinator.data["today"]["meals"][0]["name"] = {
+        "de": "Hütten Cordon Bleu vom Schwein mit Zitrone",
+        "en": "Hutten Cordon Bleu from pork with lemon",
+    }
+    sensor = MensaMealSensor(mock_coordinator, mock_entry, 0, "today")
+    assert sensor.entity_id == "sensor.ingolstadt_mensa_today_1"
+
+    sensor_tomorrow = MensaMealSensor(mock_coordinator, mock_entry, 3, "tomorrow")
+    assert sensor_tomorrow.entity_id == "sensor.ingolstadt_mensa_tomorrow_4"
 
 
 def test_sensor_device_info(mock_coordinator, mock_entry):
