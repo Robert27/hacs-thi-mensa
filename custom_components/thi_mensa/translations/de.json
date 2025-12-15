@@ -1,0 +1,37 @@
+{
+    "config": {
+        "step": {
+            "user": {
+                "title": "Ingolstadt Mensa verbinden",
+                "description": "Wählen Sie einen Standort und eine Preisgruppe, um die heutigen Mahlzeiten anzuzeigen.",
+                "data": {
+                    "location": "Mensa-Standort",
+                    "price_group": "Preisgruppe"
+                }
+            }
+        },
+        "error": {
+            "connection": "Der Mensa-Service konnte nicht erreicht werden.",
+            "invalid_location": "Der ausgewählte Standort hat keine Daten zurückgegeben."
+        },
+        "abort": {
+            "already_configured": "Dieser Standort ist bereits konfiguriert."
+        }
+    },
+    "options": {
+        "step": {
+            "init": {
+                "title": "Ingolstadt Mensa-Einstellungen aktualisieren",
+                "description": "Passen Sie den Standort oder die Preisgruppe für die Preisgestaltung an.",
+                "data": {
+                    "location": "Mensa-Standort",
+                    "price_group": "Preisgruppe"
+                }
+            }
+        },
+        "error": {
+            "connection": "Der Mensa-Service konnte nicht erreicht werden.",
+            "invalid_location": "Der ausgewählte Standort hat keine Daten zurückgegeben."
+        }
+    }
+}

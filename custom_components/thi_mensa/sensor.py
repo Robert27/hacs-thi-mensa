@@ -135,6 +135,25 @@ class MensaMealSensor(CoordinatorEntity, SensorEntity):
 
         return normalized
 
+    def _get_preferred_language(self) -> str:
+        """Get the user's preferred language (de or en)."""
+        try:
+            language = self.coordinator.hass.config.language
+            if language and language.lower().startswith("de"):
+                return "de"
+        except (AttributeError, TypeError):
+            pass
+        return "en"
+
+    def _get_meal_name(self, name_data: dict[str, Any]) -> str | None:
+        """Get meal name in the user's preferred language with fallback."""
+        preferred_lang = self._get_preferred_language()
+        fallback_lang = "de" if preferred_lang == "en" else "en"
+
+        # Try preferred language first, then fallback
+        name = name_data.get(preferred_lang) or name_data.get(fallback_lang)
+        return self._strip_restaurant_prefix(name) if name else None
+
     @property
     def _selected_price_group(self) -> str:
         return self._config_entry.options.get(
@@ -162,11 +181,20 @@ class MensaMealSensor(CoordinatorEntity, SensorEntity):
         """Return the actual meal name for friendly display."""
         meal = self._meal
         if not meal:
-            return f"Gericht {self._slot_index + 1}"
+            # Use language-appropriate fallback text
+            preferred_lang = self._get_preferred_language()
+            fallback_text = "Gericht" if preferred_lang == "de" else "Meal"
+            return f"{fallback_text} {self._slot_index + 1}"
+
         name_data = meal.get("name") or {}
-        name = name_data.get("en") or name_data.get("de")
-        stripped_name = self._strip_restaurant_prefix(name)
-        return stripped_name if stripped_name else f"Gericht {self._slot_index + 1}"
+        name = self._get_meal_name(name_data)
+        if name:
+            return name
+
+        # Final fallback with language-appropriate text
+        preferred_lang = self._get_preferred_language()
+        fallback_text = "Gericht" if preferred_lang == "de" else "Meal"
+        return f"{fallback_text} {self._slot_index + 1}"
 
     @property
     def icon(self) -> str:
