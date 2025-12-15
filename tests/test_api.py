@@ -8,7 +8,7 @@ from unittest.mock import AsyncMock, MagicMock
 import aiohttp
 import pytest
 
-from custom_components.thi_mensa.api import (
+from custom_components.ingolstadt_mensa.api import (
     THIMensaApiCommunicationError,
     THIMensaApiResponseError,
 )
@@ -135,7 +135,7 @@ async def test_async_fetch_meals_http_error(api_client):
 @pytest.mark.asyncio
 async def test_async_fetch_meals_json_decode_error(api_client):
     """Test JSON decode error handling."""
-    from custom_components.thi_mensa.api import THIMensaApiError
+    from custom_components.ingolstadt_mensa.api import THIMensaApiError
 
     mock_response = MagicMock()
     mock_response.json = AsyncMock(

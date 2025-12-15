@@ -3,7 +3,7 @@
 import re
 from logging import Logger, getLogger
 
-DOMAIN = "thi_mensa"
+DOMAIN = "ingolstadt_mensa"
 LOGGER: Logger = getLogger(__package__)
 
 API_URL = "https://api.neuland.app/graphql"

@@ -5,7 +5,7 @@ from unittest.mock import MagicMock
 
 import pytest
 
-from custom_components.thi_mensa.sensor import MensaMealSensor
+from custom_components.ingolstadt_mensa.sensor import MensaMealSensor
 
 
 @pytest.fixture
@@ -353,7 +353,7 @@ def test_sensor_device_info(mock_coordinator, mock_entry):
     sensor = MensaMealSensor(mock_coordinator, mock_entry, 0, "today")
     device_info = sensor._attr_device_info
 
-    assert device_info["identifiers"] == {("thi_mensa", "IngolstadtMensa-today")}
+    assert device_info["identifiers"] == {("ingolstadt_mensa", "IngolstadtMensa-today")}
     assert "Ingolstadt Mensa - Today" in device_info["name"]
 
 
@@ -362,5 +362,7 @@ def test_sensor_device_info_tomorrow(mock_coordinator, mock_entry):
     sensor = MensaMealSensor(mock_coordinator, mock_entry, 0, "tomorrow")
     device_info = sensor._attr_device_info
 
-    assert device_info["identifiers"] == {("thi_mensa", "IngolstadtMensa-tomorrow")}
+    assert device_info["identifiers"] == {
+        ("ingolstadt_mensa", "IngolstadtMensa-tomorrow")
+    }
     assert "Ingolstadt Mensa - Tomorrow" in device_info["name"]

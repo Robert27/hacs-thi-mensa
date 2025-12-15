@@ -12,8 +12,8 @@ import pytest
 project_root = Path(__file__).parent.parent
 sys.path.insert(0, str(project_root))
 
-from custom_components.thi_mensa.api import THIMensaApiClient
-from custom_components.thi_mensa.const import DEFAULT_LOCATIONS, PRICE_GROUPS
+from custom_components.ingolstadt_mensa.api import THIMensaApiClient
+from custom_components.ingolstadt_mensa.const import DEFAULT_LOCATIONS, PRICE_GROUPS
 
 
 @pytest.fixture

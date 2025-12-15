@@ -8,13 +8,13 @@ import pytest
 from homeassistant.core import HomeAssistant
 from homeassistant.data_entry_flow import FlowResultType
 
-from custom_components.thi_mensa import config_flow
-from custom_components.thi_mensa.api import (
+from custom_components.ingolstadt_mensa import config_flow
+from custom_components.ingolstadt_mensa.api import (
     THIMensaApiClient,
     THIMensaApiCommunicationError,
     THIMensaApiResponseError,
 )
-from custom_components.thi_mensa.const import (
+from custom_components.ingolstadt_mensa.const import (
     CONF_LOCATION,
     CONF_PRICE_GROUP,
     DEFAULT_LOCATIONS,
@@ -58,10 +58,10 @@ async def test_config_flow_user_step_success(flow, sample_api_response):
 
     with (
         patch(
-            "custom_components.thi_mensa.config_flow.async_get_clientsession"
+            "custom_components.ingolstadt_mensa.config_flow.async_get_clientsession"
         ) as mock_get_session,
         patch(
-            "custom_components.thi_mensa.config_flow.THIMensaApiClient"
+            "custom_components.ingolstadt_mensa.config_flow.THIMensaApiClient"
         ) as mock_client_class,
     ):
         mock_session = MagicMock()
@@ -89,10 +89,10 @@ async def test_config_flow_user_step_connection_error(flow):
 
     with (
         patch(
-            "custom_components.thi_mensa.config_flow.async_get_clientsession"
+            "custom_components.ingolstadt_mensa.config_flow.async_get_clientsession"
         ) as mock_get_session,
         patch(
-            "custom_components.thi_mensa.config_flow.THIMensaApiClient"
+            "custom_components.ingolstadt_mensa.config_flow.THIMensaApiClient"
         ) as mock_client_class,
     ):
         mock_session = MagicMock()
@@ -120,10 +120,10 @@ async def test_config_flow_user_step_invalid_location(flow):
 
     with (
         patch(
-            "custom_components.thi_mensa.config_flow.async_get_clientsession"
+            "custom_components.ingolstadt_mensa.config_flow.async_get_clientsession"
         ) as mock_get_session,
         patch(
-            "custom_components.thi_mensa.config_flow.THIMensaApiClient"
+            "custom_components.ingolstadt_mensa.config_flow.THIMensaApiClient"
         ) as mock_client_class,
     ):
         mock_session = MagicMock()

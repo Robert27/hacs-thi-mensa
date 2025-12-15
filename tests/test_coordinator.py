@@ -8,7 +8,7 @@ from unittest.mock import AsyncMock, MagicMock, patch
 import pytest
 from homeassistant.util import dt as dt_util
 
-from custom_components.thi_mensa.coordinator import (
+from custom_components.ingolstadt_mensa.coordinator import (
     THIMensaDataUpdateCoordinator,
     _filter_meals_by_date,
     _parse_entry_date,
@@ -101,7 +101,7 @@ async def test_coordinator_update_success(
     mock_report, mock_config_entry, sample_meal_data
 ):
     """Test successful coordinator update."""
-    from custom_components.thi_mensa.api import THIMensaApiClient
+    from custom_components.ingolstadt_mensa.api import THIMensaApiClient
 
     coordinator = THIMensaDataUpdateCoordinator(
         hass=MagicMock(),
@@ -129,7 +129,7 @@ async def test_coordinator_update_success(
 @patch("homeassistant.helpers.frame.report_usage")
 async def test_coordinator_update_with_errors(mock_report, mock_config_entry):
     """Test coordinator update with API errors."""
-    from custom_components.thi_mensa.api import (
+    from custom_components.ingolstadt_mensa.api import (
         THIMensaApiClient,
         THIMensaApiResponseError,
     )
@@ -225,7 +225,7 @@ async def test_coordinator_update_with_communication_error(
     mock_report, mock_config_entry
 ):
     """Test coordinator update with communication error."""
-    from custom_components.thi_mensa.api import (
+    from custom_components.ingolstadt_mensa.api import (
         THIMensaApiClient,
         THIMensaApiCommunicationError,
     )
@@ -256,7 +256,7 @@ async def test_coordinator_update_with_api_errors_in_response(
     mock_report, mock_config_entry
 ):
     """Test coordinator update when API returns errors in response."""
-    from custom_components.thi_mensa.api import THIMensaApiClient
+    from custom_components.ingolstadt_mensa.api import THIMensaApiClient
     from homeassistant.helpers.update_coordinator import UpdateFailed
 
     coordinator = THIMensaDataUpdateCoordinator(

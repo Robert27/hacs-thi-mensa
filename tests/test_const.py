@@ -1,6 +1,6 @@
 """Tests for constants and utility functions."""
 
-from custom_components.thi_mensa.const import (
+from custom_components.ingolstadt_mensa.const import (
     format_location_name,
     format_price_group_name,
 )
