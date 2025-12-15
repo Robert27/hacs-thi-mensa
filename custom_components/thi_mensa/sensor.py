@@ -4,7 +4,7 @@ from __future__ import annotations
 
 from typing import TYPE_CHECKING, Any
 
-from homeassistant.components.sensor import SensorEntity
+from homeassistant.components.sensor import SensorEntity, SensorStateClass
 from homeassistant.helpers.device_registry import DeviceEntryType, DeviceInfo
 from homeassistant.helpers.update_coordinator import CoordinatorEntity
 
@@ -96,6 +96,7 @@ class MensaMealSensor(CoordinatorEntity, SensorEntity):
             name=device_name,
             entry_type=DeviceEntryType.SERVICE,
         )
+        self._attr_state_class = SensorStateClass.MEASUREMENT
 
     @staticmethod
     def _get_category_icon(category: str | None) -> str:
@@ -234,11 +235,30 @@ class MensaMealSensor(CoordinatorEntity, SensorEntity):
         if not meal:
             return {}
         name_data = meal.get("name") or {}
-        return {
+        prices = meal.get("prices") or {}
+
+        # Get all price tiers
+        price_student = prices.get("student")
+        price_employee = prices.get("employee")
+        price_guest = prices.get("guest")
+
+        attributes = {
             "name_de": name_data.get("de"),
             "name_en": name_data.get("en"),
             "category": meal.get("category"),
+            "restaurant": meal.get("restaurant"),
             "allergens": meal.get("allergens"),
             "flags": meal.get("flags"),
             "date": self.coordinator.data.get(self._day, {}).get("timestamp"),
+            "price_student": (
+                round(float(price_student), 2) if price_student is not None else None
+            ),
+            "price_employee": (
+                round(float(price_employee), 2) if price_employee is not None else None
+            ),
+            "price_guest": (
+                round(float(price_guest), 2) if price_guest is not None else None
+            ),
         }
+
+        return attributes

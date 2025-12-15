@@ -18,8 +18,10 @@ def mock_coordinator():
             "meals": [
                 {
                     "id": "1",
+                    "mealId": "meal-1",
                     "name": {"de": "Spaghetti Bolognese", "en": "Spaghetti Bolognese"},
                     "category": "main",
+                    "restaurant": "IngolstadtMensa",
                     "prices": {"student": 3.5, "employee": 4.5, "guest": 5.5},
                     "allergens": ["gluten", "milk"],
                     "flags": ["vegetarian"],
@@ -248,15 +250,23 @@ def test_sensor_extra_state_attributes(mock_coordinator, mock_entry):
     assert "name_de" in attributes
     assert "name_en" in attributes
     assert "category" in attributes
+    assert "restaurant" in attributes
+    assert "price_student" in attributes
+    assert "price_employee" in attributes
+    assert "price_guest" in attributes
     assert "allergens" in attributes
     assert "flags" in attributes
     assert "date" in attributes
     assert attributes["name_de"] == "Spaghetti Bolognese"
     assert attributes["name_en"] == "Spaghetti Bolognese"
     assert attributes["category"] == "main"
+    assert attributes["restaurant"] == "IngolstadtMensa"
     assert attributes["allergens"] == ["gluten", "milk"]
     assert attributes["flags"] == ["vegetarian"]
     assert attributes["date"] == "2025-01-15"
+    assert attributes["price_student"] == 3.5
+    assert attributes["price_employee"] == 4.5
+    assert attributes["price_guest"] == 5.5
 
 
 def test_sensor_extra_state_attributes_empty(mock_coordinator, mock_entry):
